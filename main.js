@@ -5,8 +5,8 @@ const en = new network();
 
 
 en.address = '10.0.0.30';
-//en.cidr = '17'
-en.mask = '255.255.0.0';
+en.cidr = '16'
+//en.mask = '255.255.0.0';
 
 var res = calculateSubnet(en)
 

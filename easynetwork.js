@@ -8,8 +8,8 @@ class network {
 
 // generate subnet information
 function calculateSubnet(network) {
-  network = validateObject(network);
   network = maskAdjacencies(network);
+  network = validateObject(network);
 
   return network;
 }
@@ -50,8 +50,8 @@ function cidrToMask(cidr) {
 function validateObject(network) {
   const addressRegex = /^(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$/;
   const maskRegex = /^(?:1+)?(?:0+)?$|^(?:1+0?){0,4}1+0+$/
-  const binMask = network.mask ? addressToBinaryArray(network.mask).join('') : ''
   network = cleanObject(network)
+  const binMask = addressToBinaryArray(network.mask).join('')
   if (!addressRegex.test(network.address)) {
     return defaultError('Not a valid IP Address.')
   } 
