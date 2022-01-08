@@ -8,9 +8,9 @@ class network {
 
 // generate subnet information
 function calculateSubnet(network) {
-  network = maskAdjacencies(network);
+  network = cleanObject(network);
   network = validateObject(network);
-
+  network = maskAdjacencies(network);
   return network;
 }
 
@@ -26,7 +26,12 @@ function binArrToAddress(array) {
 
 // convert subnet mask to cidr
 function maskToCidr(mask) {
-  return (addressToBinaryArray(mask).join('')).indexOf('0');
+  var cidr = addressToBinaryArray(mask).join('').indexOf('0').toString()  
+  if (cidr == '-1') {
+    return '32'
+  } else {
+    return cidr
+  }
 }
 
 // convert cidr to subnet mask
@@ -48,25 +53,62 @@ function cidrToMask(cidr) {
 
 // validate ip address, and cidr or mask 
 function validateObject(network) {
-  const addressRegex = /^(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$/;
-  const maskRegex = /^(?:1+)?(?:0+)?$|^(?:1+0?){0,4}1+0+$/
-  network = cleanObject(network)
-  const binMask = addressToBinaryArray(network.mask).join('')
-  if (!addressRegex.test(network.address)) {
-    return defaultError('Not a valid IP Address.')
-  } 
-  if (network.cidr && (+network.cidr < 0 || +network.cidr > 32)) {
-    return defaultError('Not a valid CIDR.')
-  } 
-  if (network.mask && !maskRegex.test(binMask)) {
+  if (network.address) {
+    if (!validateIpAddress(network.address)) {
+      return defaultError('Not a valid IP Address.')
+    }
+  } else {
+    return defaultError('No IP Address Provided.')
+  }
+  if (network.mask && !validateMask(network.mask)) {
     return defaultError('Not a valid Mask.')
   } 
-  if (network.cidr && network.mask) {
-    if (network.cidr != binMask.indexOf('0')) {
-      return defaultError('CIDR and Mask do not match')
+  if (network.cidr && !validateCidr(network.cidr)) {
+    return defaultError('Not a valid CIDR.')
+  } 
+  if (network.mask && network.cidr) {
+    if (compareMaskCidr(netowrk.mask,network.cidr)) {
+      return defaultError('CIDR and Mask do not match.')
     }
   }
   return network
+}
+
+function validateIpAddress (ipAddress) {
+  const ipAddressRegex = /^(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])\.(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9]?[0-9])$/;
+  if (!ipAddressRegex.test(ipAddress)) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function validateCidr(cidr) {
+  if (+cidr < 0 || +cidr > 32) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+function validateMask(mask) {
+  const maskRegex = /^(?:1+)?(?:0+)?$|^(?:1+0?){0,4}1+0+$/
+  const binMask = addressToBinaryArray(mask).join('')
+  if (!maskRegex.test(binMask)) {
+    return false
+  } else {
+    return true
+  }
+}
+
+function compareMaskCidr(mask,cidr) {
+  const binMask = addressToBinaryArray(network.mask).join('')
+  const binCidr = '1'.repeat(network.cidr) + '0'.repeat(32 - network)
+  if (binCidr != binMask) {
+    return false
+  } else {
+    return true
+  }
 }
 
 function maskAdjacencies(network) {
